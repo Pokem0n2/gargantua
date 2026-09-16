@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>GARGANTUA — Schwarzschild Black Hole Raytracer</title>
+<meta name="description" content="Real-time Schwarzschild null-geodesic raytracer. Event horizon, photon ring, relativistic accretion disk, gravitational lensing — integrated live in a fragment shader.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23000'/%3E%3Cellipse cx='32' cy='32' rx='26' ry='7' fill='none' stroke='%23ffb35c' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23000'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/addons/"
+  }
+}
+</script>
+</head>
+<body>
+
+<canvas id="view"></canvas>
+
+<!-- ======== BOOT / FATAL OVERLAY ======== -->
+<div id="boot" aria-live="polite">
+  <div class="boot-core">
+    <div class="boot-title">GARGANTUA</div>
+    <div class="boot-sub">SCHWARZSCHILD NULL-GEODESIC RAYTRACER</div>
+    <div class="boot-bar"><i></i></div>
+    <div class="boot-msg" id="bootMsg">COMPILING SPACETIME…</div>
+  </div>
+</div>
+
+<div id="fatal" hidden>
+  <div class="fatal-core">
+    <div class="fatal-title">SPACETIME INTEGRATOR FAULT</div>
+    <div class="fatal-msg" id="fatalMsg">WebGL could not be initialized.</div>
+    <div class="fatal-hint" id="fatalHint">Enable hardware acceleration, update your GPU driver, or try a different browser.</div>
+    <button id="fatalRetry" type="button">RE-INITIALIZE</button>
+    <button id="fatalSafe" type="button" class="ghost">SAFE MODE (LOW)</button>
+  </div>
+</div>
+
+<!-- ======== HUD ======== -->
+<div id="hud" hidden>
+
+  <header id="hudTop">
+    <div class="brand">
+      <div class="brand-title">GARGANTUA</div>
+      <div class="brand-sub">SCHWARZSCHILD RAYTRACER · G = c = 1 · r<sub>s</sub> = 1</div>
+    </div>
+    <div class="stats" id="stats">
+      <span class="stat"><label>FPS</label><b id="stFps">--</b></span>
+      <span class="stat"><label>RES</label><b id="stRes">--</b></span>
+      <span class="stat"><label>STEPS</label><b id="stSteps">--</b></span>
+      <span class="stat"><label>QUALITY</label><b id="stQuality">--</b></span>
+      <span class="stat"><label>VIEW</label><b id="stView">BEAUTY</b></span>
+    </div>
+  </header>
+
+  <div id="toast" hidden></div>
+
+  <footer id="hudBottom">
+    <div class="dock" id="presetDock">
+      <button class="pk" data-preset="0" title="Preset 1 · Q"><i>I</i>EQUATOR</button>
+      <button class="pk" data-preset="1" title="Preset 2 · W"><i>II</i>ZENITH</button>
+      <button class="pk" data-preset="2" title="Preset 3 · E"><i>III</i>PERIHELION</button>
+      <button class="pk" data-preset="3" title="Preset 4 · R"><i>IV</i>DEEP FIELD</button>
+      <span class="dock-sep"></span>
+      <button class="pk" id="btnCine" title="Cinematic loop · C">CINEMA</button>
+      <button class="pk" id="btnSound" title="Ambient music · M">SOUND</button>
+      <button class="pk" id="btnPanel" title="Parameters · G">PARAMS</button>
+      <button class="pk" id="btnHelp" title="Shortcuts · ?">KEYS</button>
+    </div>
+    <div class="hints">
+      <span>DRAG orbit · WHEEL zoom</span><span>0–9 debug views</span><span>SPACE pause</span><span>? all keys</span>
+    </div>
+  </footer>
+
+  <!-- ======== PARAMETER PANEL (21) ======== -->
+  <aside id="panel" hidden>
+    <div class="panel-head">
+      <div class="panel-title">FIELD PARAMETERS <span id="paramCount">21</span></div>
+      <button id="panelClose" class="x" title="Close · G">✕</button>
+    </div>
+    <div class="panel-scroll">
+      <div class="group-label">ACCRETION DISK</div>
+      <div id="grpDisk" class="group"></div>
+      <div class="group-label">COSMOS</div>
+      <div id="grpCosmos" class="group"></div>
+      <div class="group-label">OPTICS / POST</div>
+      <div id="grpPost" class="group"></div>
+    </div>
+    <div class="panel-foot">
+      <div class="quality-row">
+        <label>QUALITY</label>
+        <div class="qbtns" id="qbtns">
+          <button data-q="standard">STANDARD</button>
+          <button data-q="high">HIGH</button>
+          <button data-q="cinematic">CINEMATIC</button>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button id="btnReset" title="Reset parameters · Shift+R">RESET</button>
+        <button id="btnShot" title="Save PNG · S">PNG</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======== HELP ======== -->
+  <div id="help" hidden>
+    <div class="help-core">
+      <div class="help-title">MISSION CONTROLS</div>
+      <div class="help-cols">
+        <div>
+          <div class="help-group">VIEWS</div>
+          <div class="k"><b>Q W E R</b><span>view presets I – IV</span></div>
+          <div class="k"><b>P</b><span>cycle presets</span></div>
+          <div class="k"><b>C</b><span>cinematic camera loop</span></div>
+          <div class="k"><b>drag / wheel</b><span>orbit / zoom (exit cinema)</span></div>
+        </div>
+        <div>
+          <div class="help-group">TIME</div>
+          <div class="k"><b>SPACE</b><span>pause / resume</span></div>
+          <div class="k"><b>, .</b><span>time slower / faster</span></div>
+          <div class="k"><b>M</b><span>ambient music</span></div>
+          <div class="k"><b>S</b><span>save PNG screenshot</span></div>
+        </div>
+        <div>
+          <div class="help-group">INTERFACE</div>
+          <div class="k"><b>0 – 9</b><span>debug views (0 = beauty)</span></div>
+          <div class="k"><b>H</b><span>toggle HUD</span></div>
+          <div class="k"><b>G</b><span>parameter panel</span></div>
+          <div class="k"><b>F</b><span>fullscreen</span></div>
+          <div class="k"><b>Shift+R</b><span>reset parameters</span></div>
+          <div class="k"><b>ESC</b><span>close / exit cinema</span></div>
+        </div>
+      </div>
+      <button id="helpClose">CLOSE</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
