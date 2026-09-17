@@ -239,6 +239,7 @@ input[type="range"]::-moz-range-thumb {
 #help {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  pointer-events: auto; /* v0.1.2: #hud is pointer-events:none — the modal must opt back in */
 }
 .help-core {
   width: min(720px, 92vw); max-height: 84vh; overflow-y: auto;
@@ -56498,7 +56499,7 @@ function boot() {
 
   // public automation API
   window.GARGANTUA = {
-    version: '1.0.0',
+    version: '0.1.2',
     params: params.values,
     setParam(id, v) { params.set(id, Number(v)); return params.values[id]; },
     resetParams() { params.reset(); },

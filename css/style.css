@@ -229,6 +229,7 @@ input[type="range"]::-moz-range-thumb {
 #help {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  pointer-events: auto; /* v0.1.2: #hud is pointer-events:none — the modal must opt back in */
 }
 .help-core {
   width: min(720px, 92vw); max-height: 84vh; overflow-y: auto;

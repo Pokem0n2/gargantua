@@ -347,7 +347,7 @@ function boot() {
 
   // public automation API
   window.GARGANTUA = {
-    version: '1.0.0',
+    version: '0.1.2',
     params: params.values,
     setParam(id, v) { params.set(id, Number(v)); return params.values[id]; },
     resetParams() { params.reset(); },
