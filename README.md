@@ -14,17 +14,23 @@ Einstein arcs, multiple disk images and full gravitational lensing are **emergen
 
 ## Run
 
-Any static file server works. Two zero-install options:
+**Offline / double-click:** open `gargantua.html` in any modern browser — no server,
+no internet needed. The file is fully self-contained (Three.js, shaders, styles and
+all code inlined; `audio/ambient.wav` is picked up from the folder next to it).
+
+**From a local server (development):**
 
 ```bash
 cd gargantua
-python -m http.server 8080           # option 1: Python
-npx serve -l 8080 .                  # option 2: Node
-# then open http://localhost:8080
+py tools/build.py                    # rebuild gargantua.html from js/ sources
+py tools/serve.py 8080               # no-cache static server
+# then open http://localhost:8080/gargantua.html
 ```
 
-No build step. ES modules + import map; Three.js r160 is vendored locally
-(`vendor/`), so it runs fully offline.
+- Source of truth is the ES-module tree in `js/**` + `tools/template.html` (HUD DOM);
+  `tools/build.py` inlines everything into one classic-scope bundle and auto-deconflicts
+  names against Three.js (e.g. three's `Audio` class vs the DOM `Audio` constructor).
+- Three.js r160 is vendored locally (`vendor/`), so it runs fully offline.
 
 ## Controls
 
@@ -87,9 +93,9 @@ caught and auto-recovered; shader/startup faults show a fatal overlay with a
 ## Layout
 
 ```
-index.html            import map + HUD DOM
-css/style.css
-js/main.js            boot, loop, state, URL API
+gargantua.html        SINGLE-FILE BUILD — the entry you open (self-contained)
+css/style.css         source styles (inlined by the build)
+js/main.js            boot, loop, state, URL API     (build sources)
 js/core/params.js     21 parameters + persistence
 js/core/scene.js      HDR pipeline, bloom, quality, resize, recovery
 js/core/camera.js     OrbitControls, presets, cinematic loop
@@ -97,6 +103,10 @@ js/core/hud.js        panel/stats/toasts        js/core/input.js   shortcuts
 js/core/audio.js      ambient playback          js/core/recovery.js  WebGL faults
 js/shaders/blackhole.js  geodesic integrator + disk + sky (GLSL)
 js/shaders/post.js       bright/blur/composite (GLSL)
+tools/build.py        bundles js/ + css + template → gargantua.html
+tools/template.html   HUD DOM skeleton used by the build
+tools/serve.py        no-cache static dev server
+tools/make_audio.py   regenerates audio/ambient.wav
 vendor/               three.module.js r160, OrbitControls (local)
-audio/ambient.wav     generated 48 s seamless drone (tools/make_audio.py)
+audio/ambient.wav     generated 48 s seamless drone
 ```

@@ -163,7 +163,7 @@ const cb = {
   async music() {
     const on = await ambient.toggle();
     hud.setSound(on);
-    hud.toast(on ? 'AMBIENT · ON' : 'AMBIENT · OFF');
+    hud.toast(on ? 'AMBIENT · ON' : ('AMBIENT · OFF' + (ambient.lastError ? ' — ' + ambient.lastError.slice(0, 60) : '')), on ? 1600 : 4000);
   },
   panel() {
     state.panelOpen = !state.panelOpen;
@@ -370,6 +370,15 @@ function boot() {
   };
 
   window.addEventListener('keydown', e => { if (e.key === '?') e.preventDefault(); }, { capture: true });
+
+  // audio diagnostics (tiny, harmless in production)
+  window.__GAUD = () => JSON.stringify({
+    playing: ambient.playing,
+    err: ambient.lastError,
+    vol: ambient.el ? ambient.el.volume : null,
+    paused: ambient.el ? ambient.el.paused : null,
+    src: ambient.el ? String(ambient.el.src).slice(0, 40) : null
+  });
 
   requestAnimationFrame(loop);
 }

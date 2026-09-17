@@ -3,7 +3,7 @@
 // fatal overlay, safe-mode fallback
 // ============================================================
 
-const $ = id => document.getElementById(id);
+const $el = id => document.getElementById(id);
 
 export function probeWebGL() {
   try {
@@ -17,14 +17,14 @@ export function probeWebGL() {
 }
 
 export function showFatal(msg, hint) {
-  $('boot').hidden = false;
-  $('boot').classList.remove('done');
-  $('fatal').hidden = false;
-  $('fatalMsg').textContent = msg || 'WebGL could not be initialized.';
-  if (hint) $('fatalHint').textContent = hint;
+  $el('boot').hidden = false;
+  $el('boot').classList.remove('done');
+  $el('fatal').hidden = false;
+  $el('fatalMsg').textContent = msg || 'WebGL could not be initialized.';
+  if (hint) $el('fatalHint').textContent = hint;
 }
 
-export function hideFatal() { $('fatal').hidden = true; }
+export function hideFatal() { $el('fatal').hidden = true; }
 
 export function safeModeAndReload() {
   try {
@@ -37,15 +37,15 @@ export function safeModeAndReload() {
 }
 
 export function wireRecovery({ onContextLost, onContextRestored }) {
-  const canvas = $('view');
+  const canvas = $el('view');
 
-  $('fatalRetry').addEventListener('click', () => location.reload());
-  $('fatalSafe').addEventListener('click', safeModeAndReload);
+  $el('fatalRetry').addEventListener('click', () => location.reload());
+  $el('fatalSafe').addEventListener('click', safeModeAndReload);
 
   window.addEventListener('error', e => {
     // surface script faults on the boot overlay while the scene is not yet up
     if (!window.__GARGANTUA_READY) {
-      const m = $('bootMsg');
+      const m = $el('bootMsg');
       if (m) m.textContent = 'FAULT: ' + (e.message || 'unknown').slice(0, 90);
     }
   });
@@ -60,12 +60,12 @@ export function wireRecovery({ onContextLost, onContextRestored }) {
 }
 
 export function bootMessage(t) {
-  const m = $('bootMsg');
+  const m = $el('bootMsg');
   if (m) m.textContent = t;
 }
 
 export function dismissBoot() {
-  const b = $('boot');
+  const b = $el('boot');
   b.classList.add('done');
   setTimeout(() => { b.hidden = true; }, 1000);
   window.__GARGANTUA_READY = true;
